@@ -5,7 +5,6 @@ from telegram.ext import Updater, CommandHandler, CallbackContext, CallbackQuery
 # /start COMMAND
 # ======================
 def start(update: Update, context: CallbackContext):
-    # Welcome message
     welcome_text = (
         "⚽ 𝐖ᴇʟᴄᴏᴍᴇ Tᴏ Fᴏᴏᴛʙᴀʟʟ Bᴏᴛ!\n\n"
         "🎮 Sᴛᴇᴘ ᴏɴᴛᴏ ᴛʜᴇ ᴠɪʀᴛᴜᴀʟ ᴘɪᴛᴄʜ, sᴛʀᴀᴛᴇɢɪᴢᴇ, ʙᴜɪʟᴅ ʏᴏᴜʀ ᴛᴇᴀᴍ, ᴀɴᴅ ᴘʟᴀʏ ᴊᴜsᴛ ʟɪᴋᴇ ɪɴ ᴀ ʀᴇᴀʟ ғᴏᴏᴛʙᴀʟʟ ᴍᴀᴛᴄʜ!\n\n"
@@ -14,7 +13,6 @@ def start(update: Update, context: CallbackContext):
         "Tʏᴘᴇ /help ᴛᴏ ʟᴇᴀʀɴ ʜᴏᴡ ᴛᴏ ɢᴇᴛ sᴛᴀʀᴛᴇᴅ ᴀɴᴅ ᴍᴀsᴛᴇʀ ᴛʜᴇ ɢᴀᴍᴇ!"
     )
 
-    # Inline buttons
     keyboard = [
         [
             InlineKeyboardButton("Support", url="https://t.me/YOUR_SUPPORT_LINK"),
@@ -25,7 +23,6 @@ def start(update: Update, context: CallbackContext):
         ]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
-
     update.message.reply_text(welcome_text, reply_markup=reply_markup)
 
 
@@ -37,80 +34,57 @@ def help_command(update: Update, context: CallbackContext):
         "🏟️ Current Commands:\n\n"
         "1️⃣ Press /newgame to start the game."
     )
-
-    # Inline button to delete the message
-    keyboard = [
-        [InlineKeyboardButton("Alright!", callback_data="delete_help")]
-    ]
+    keyboard = [[InlineKeyboardButton("Alright!", callback_data="delete_help")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
-
     update.message.reply_text(help_text, reply_markup=reply_markup)
 
-# ======================
-# CALLBACK HANDLER
-# ======================
-def button_callback(update: Update, context: CallbackContext):
-    query = update.callback_query
-    query.answer()  # Acknowledge the button click
-    if query.data == "delete_help":
-        query.message.delete()  # Delete the help message
-
-
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
-from telegram.ext import CommandHandler, CallbackQueryHandler, CallbackContext
 
 # ======================
 # /newgame COMMAND
 # ======================
 def newgame_command(update: Update, context: CallbackContext):
     text = "🎉 New Game Alert! 🎉\n\nWho will be the game host for this match? 🤔"
-
-    # Inline button to become the host
-    keyboard = [
-        [InlineKeyboardButton("Im tha host", callback_data="become_host")]
-    ]
+    keyboard = [[InlineKeyboardButton("Im tha host", callback_data="become_host")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
-
     update.message.reply_text(text, reply_markup=reply_markup)
 
+
 # ======================
-# CALLBACK HANDLER
+# SINGLE CALLBACK HANDLER (handles all buttons)
 # ======================
 def button_callback(update: Update, context: CallbackContext):
     query = update.callback_query
-    query.answer()  # acknowledge button click
+    query.answer()
 
     if query.data == "delete_help":
         query.message.delete()
 
     elif query.data == "become_host":
-        # Show a new message confirming host
         keyboard = [[InlineKeyboardButton("OK", callback_data="ok_host")]]
         reply_markup = InlineKeyboardMarkup(keyboard)
         query.message.reply_text("✅ You are the host!", reply_markup=reply_markup)
 
     elif query.data == "ok_host":
-        # Just acknowledge or optionally delete the message
         query.message.delete()
+
 
 # ======================
 # MAIN FUNCTION
 # ======================
 def main():
-    TOKEN = "8301290642:AAEUw6oa1C1fLIXPBpqRiIJjOYFhrG5sLco"  # Replace with your bot token
+    TOKEN = "YOUR_BOT_TOKEN_HERE"
     updater = Updater(TOKEN, use_context=True)
     dp = updater.dispatcher
 
-    # Add /start handler
     dp.add_handler(CommandHandler("start", start))
     dp.add_handler(CommandHandler("help", help_command))
-    dp.add_handler(CallbackQueryHandler(button_callback))
     dp.add_handler(CommandHandler("newgame", newgame_command))
-dp.add_handler(CallbackQueryHandler(button_callback))  # Already handles previous buttons too
+    dp.add_handler(CallbackQueryHandler(button_callback))  # single callback for all buttons
 
-# Start the bot
-updater.start_polling()
-updater.idle()
+    print("⚽ Bot is running...")
+    updater.start_polling()
+    updater.idle()
 
-if __name__ == "__main__":
+
+if name == "main":
     main()
