@@ -44,7 +44,7 @@ def help_command(update: Update, context: CallbackContext):
 # ======================
 def newgame_command(update: Update, context: CallbackContext):
     text = "🎉 New Game Alert! 🎉\n\nWho will be the game host for this match? 🤔"
-    keyboard = [[InlineKeyboardButton("Im tha host", callback_data="become_host")]]
+    keyboard = [[InlineKeyboardButton("🎭 I'm the host!", callback_data="become_host")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
     update.message.reply_text(text, reply_markup=reply_markup)
 
