@@ -1,5 +1,5 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Updater, CommandHandler, CallbackContext
+from telegram.ext import Updater, CommandHandler, CallbackContext, CallbackQueryHandler
 
 # ======================
 # /start COMMAND
@@ -27,6 +27,33 @@ def start(update: Update, context: CallbackContext):
     reply_markup = InlineKeyboardMarkup(keyboard)
 
     update.message.reply_text(welcome_text, reply_markup=reply_markup)
+
+
+# ======================
+# /help COMMAND
+# ======================
+def help_command(update: Update, context: CallbackContext):
+    help_text = (
+        "🏟️ Current Commands:\n\n"
+        "1️⃣ Press /newgame to start the game."
+    )
+
+    # Inline button to delete the message
+    keyboard = [
+        [InlineKeyboardButton("Alright!", callback_data="delete_help")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    update.message.reply_text(help_text, reply_markup=reply_markup)
+
+# ======================
+# CALLBACK HANDLER
+# ======================
+def button_callback(update: Update, context: CallbackContext):
+    query = update.callback_query
+    query.answer()  # Acknowledge the button click
+    if query.data == "delete_help":
+        query.message.delete()  # Delete the help message
 
 # ======================
 # MAIN FUNCTION
