@@ -86,5 +86,5 @@ def main():
     updater.idle()
 
 
-if name == "main":
+if __name__ == "__main__":
     main()
