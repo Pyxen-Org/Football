@@ -1,4 +1,4 @@
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ChatMember
 from telegram.ext import Updater, CommandHandler, CallbackContext, CallbackQueryHandler
 
 # ======================
@@ -42,7 +42,18 @@ def help_command(update: Update, context: CallbackContext):
 # ======================
 # /newgame COMMAND
 # ======================
+
+# ======================
+# /newgame COMMAND
+# ======================
 def newgame_command(update: Update, context: CallbackContext):
+    chat_type = update.effective_chat.type
+    if chat_type == "private":
+        # User is in bot inbox, send warning
+        update.message.reply_text("⚠️ Use /newgame in a group to start a game!")
+        return
+
+    # Group chat: send new game message
     text = "🎉 New Game Alert! 🎉\n\nWho will be the game host for this match? 🤔"
     keyboard = [[InlineKeyboardButton("🎭 I'm the host!", callback_data="become_host")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
@@ -50,21 +61,38 @@ def newgame_command(update: Update, context: CallbackContext):
 
 
 # ======================
-# SINGLE CALLBACK HANDLER (handles all buttons)
+# CALLBACK HANDLER (single)
 # ======================
 def button_callback(update: Update, context: CallbackContext):
     query = update.callback_query
     query.answer()
+    user = query.from_user
+    chat = query.message.chat
 
     if query.data == "delete_help":
         query.message.delete()
 
     elif query.data == "become_host":
-        keyboard = [[InlineKeyboardButton("OK", callback_data="ok_host")]]
-        reply_markup = InlineKeyboardMarkup(keyboard)
-        query.message.reply_text("✅ You are the host!", reply_markup=reply_markup)
+        # Check if the user is an admin
+        member = chat.get_member(user.id)
+        if member.status in ["administrator", "creator"]:
+            # User is admin, edit original message
+            new_text = f"🎉 [{user.first_name}](tg://user?id={user.id}) is now the game host! Let's get the match started"
+            query.message.edit_text(new_text, parse_mode="Markdown", reply_markup=None)
+
+            # Show ephemeral confirmation
+            keyboard = [[InlineKeyboardButton("OK", callback_data="ok_host")]]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            query.message.reply_text("✅ You are now the game host", reply_markup=reply_markup)
+
+        else:
+            # Not admin
+            keyboard = [[InlineKeyboardButton("OK", callback_data="ok_host")]]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            query.message.reply_text("❌ You are not an admin! Ask a group admin to host.", reply_markup=reply_markup)
 
     elif query.data == "ok_host":
+        # Delete the ephemeral confirmation message
         query.message.delete()
 
 
