@@ -72,7 +72,7 @@ def button_callback(update: Update, context: CallbackContext):
 # MAIN FUNCTION
 # ======================
 def main():
-    TOKEN = "YOUR_BOT_TOKEN_HERE"
+    TOKEN = "8301290642:AAEUw6oa1C1fLIXPBpqRiIJjOYFhrG5sLco"
     updater = Updater(TOKEN, use_context=True)
     dp = updater.dispatcher
 
