@@ -55,6 +55,44 @@ def button_callback(update: Update, context: CallbackContext):
     if query.data == "delete_help":
         query.message.delete()  # Delete the help message
 
+
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
+from telegram.ext import CommandHandler, CallbackQueryHandler, CallbackContext
+
+# ======================
+# /newgame COMMAND
+# ======================
+def newgame_command(update: Update, context: CallbackContext):
+    text = "🎉 New Game Alert! 🎉\n\nWho will be the game host for this match? 🤔"
+
+    # Inline button to become the host
+    keyboard = [
+        [InlineKeyboardButton("Im tha host", callback_data="become_host")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    update.message.reply_text(text, reply_markup=reply_markup)
+
+# ======================
+# CALLBACK HANDLER
+# ======================
+def button_callback(update: Update, context: CallbackContext):
+    query = update.callback_query
+    query.answer()  # acknowledge button click
+
+    if query.data == "delete_help":
+        query.message.delete()
+
+    elif query.data == "become_host":
+        # Show a new message confirming host
+        keyboard = [[InlineKeyboardButton("OK", callback_data="ok_host")]]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        query.message.reply_text("✅ You are the host!", reply_markup=reply_markup)
+
+    elif query.data == "ok_host":
+        # Just acknowledge or optionally delete the message
+        query.message.delete()
+
 # ======================
 # MAIN FUNCTION
 # ======================
@@ -67,6 +105,8 @@ def main():
     dp.add_handler(CommandHandler("start", start))
     dp.add_handler(CommandHandler("help", help_command))
     dp.add_handler(CallbackQueryHandler(button_callback))
+    dp.add_handler(CommandHandler("newgame", newgame_command))
+dp.add_handler(CallbackQueryHandler(button_callback))  # Already handles previous buttons too
 
     # Start the bot
     updater.start_polling()
