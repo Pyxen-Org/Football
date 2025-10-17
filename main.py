@@ -108,9 +108,9 @@ def main():
     dp.add_handler(CommandHandler("newgame", newgame_command))
 dp.add_handler(CallbackQueryHandler(button_callback))  # Already handles previous buttons too
 
-    # Start the bot
-    updater.start_polling()
-    updater.idle()
+# Start the bot
+updater.start_polling()
+updater.idle()
 
 if __name__ == "__main__":
     main()
