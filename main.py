@@ -38,7 +38,7 @@ def help_command(update: Update, context: CallbackContext):
     reply_markup = InlineKeyboardMarkup(keyboard)
     update.message.reply_text(help_text, reply_markup=reply_markup)
 
-def rules_command(update; Update, context: CallbackContext):
+def rules_command(update: Update, context: CallbackContext):
     rules_text = (
         "Game Rules:-"
     )
