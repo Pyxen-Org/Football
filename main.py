@@ -1,4 +1,4 @@
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ChatMember
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Updater, CommandHandler, CallbackContext, CallbackQueryHandler
 
 # ======================
@@ -42,18 +42,12 @@ def help_command(update: Update, context: CallbackContext):
 # ======================
 # /newgame COMMAND
 # ======================
-
-# ======================
-# /newgame COMMAND
-# ======================
 def newgame_command(update: Update, context: CallbackContext):
     chat_type = update.effective_chat.type
     if chat_type == "private":
-        # User is in bot inbox, send warning
         update.message.reply_text("⚠️ Use /newgame in a group to start a game!")
         return
 
-    # Group chat: send new game message
     text = "🎉 New Game Alert! 🎉\n\nWho will be the game host for this match? 🤔"
     keyboard = [[InlineKeyboardButton("🎭 I'm the host!", callback_data="become_host")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
@@ -65,7 +59,6 @@ def newgame_command(update: Update, context: CallbackContext):
 # ======================
 def button_callback(update: Update, context: CallbackContext):
     query = update.callback_query
-    query.answer()
     user = query.from_user
     chat = query.message.chat
 
@@ -79,21 +72,12 @@ def button_callback(update: Update, context: CallbackContext):
             # User is admin, edit original message
             new_text = f"🎉 [{user.first_name}](tg://user?id={user.id}) is now the game host! Let's get the match started"
             query.message.edit_text(new_text, parse_mode="Markdown", reply_markup=None)
-
-            # Show ephemeral confirmation
-            keyboard = [[InlineKeyboardButton("OK", callback_data="ok_host")]]
-            reply_markup = InlineKeyboardMarkup(keyboard)
-            query.message.reply_text("✅ You are now the game host", reply_markup=reply_markup)
+            # Show ephemeral popup
+            query.answer(text="✅ You are now the game host!", show_alert=True)
 
         else:
-            # Not admin
-            keyboard = [[InlineKeyboardButton("OK", callback_data="ok_host")]]
-            reply_markup = InlineKeyboardMarkup(keyboard)
-            query.message.reply_text("❌ You are not an admin! Ask a group admin to host.", reply_markup=reply_markup)
-
-    elif query.data == "ok_host":
-        # Delete the ephemeral confirmation message
-        query.message.delete()
+            # Not admin: ephemeral popup only
+            query.answer(text="❌ You are not an admin! Ask a group admin to host.", show_alert=True)
 
 
 # ======================
@@ -104,6 +88,7 @@ def main():
     updater = Updater(TOKEN, use_context=True)
     dp = updater.dispatcher
 
+    # Add handlers
     dp.add_handler(CommandHandler("start", start))
     dp.add_handler(CommandHandler("help", help_command))
     dp.add_handler(CommandHandler("newgame", newgame_command))
@@ -114,5 +99,5 @@ def main():
     updater.idle()
 
 
-if __name__ == "__main__":
+if name == "main":
     main()
