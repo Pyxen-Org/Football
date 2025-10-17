@@ -65,6 +65,7 @@ def main():
 
     # Add /start handler
     dp.add_handler(CommandHandler("start", start))
+    dp.add_handler(CommandHandler("help", help_command))
     dp.add_handler(CallbackQueryHandler(button_callback))
 
     # Start the bot
