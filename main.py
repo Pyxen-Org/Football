@@ -38,6 +38,14 @@ def help_command(update: Update, context: CallbackContext):
     reply_markup = InlineKeyboardMarkup(keyboard)
     update.message.reply_text(help_text, reply_markup=reply_markup)
 
+def rules_command(update; Update, context: CallbackContext):
+    rules_text = (
+        "Game Rules:-"
+    )
+    keyboard = [[InlineKeyboardButton("🎐 I Understood!", callback_data="delete_rules")]]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    update.message.reply_text(rules_text, reply_markup=reply_markup)
+
 
 # ======================
 # /newgame COMMAND
@@ -91,6 +99,7 @@ def main():
     # Add handlers
     dp.add_handler(CommandHandler("start", start))
     dp.add_handler(CommandHandler("help", help_command))
+    dp.add_handler(CommandHandler("rules", rules_command))
     dp.add_handler(CommandHandler("newgame", newgame_command))
     dp.add_handler(CallbackQueryHandler(button_callback))  # single callback for all buttons
 
