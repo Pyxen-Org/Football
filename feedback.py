@@ -74,7 +74,7 @@ def feedback_message_handler(update, context):
     feedback_msg = (
         f"🗂 <b>Category:</b> {category}\n"
         f"👤 <b>From:</b> <a href='tg://user?id={user.id}'>{escaped_name}</a>\n"
-        f"🕒 <b>Time:</b> {timestamp}\n"
+        f"🕒 <b>Time:</b> {timestamp}\n\n"
         f"💬 <b>Feedback:</b> {escaped_feedback}"
     )
 
