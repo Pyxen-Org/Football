@@ -108,11 +108,11 @@ def main():
     dp.add_handler(CommandHandler("help", help_command))
     dp.add_handler(CommandHandler("rules", rules_command))
     dp.add_handler(CommandHandler("newgame", newgame_command))
-    dp.add_handler(CallbackQueryHandler(button_callback))  # single callback for all buttons
 
 
     # External Db import
     add_feedback_handlers(dp)
+    dp.add_handler(CallbackQueryHandler(button_callback))  # single callback for all buttons
 
     print("⚽ Bot is running...")
     updater.start_polling()
