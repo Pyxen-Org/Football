@@ -56,7 +56,7 @@ def feedback_category_callback(update: Update, context: CallbackContext):
 # CAPTURE FEEDBACK MESSAGE
 # ======================
 def feedback_message_handler(update: Update, context: CallbackContext):
-from telegram.utils.helpers import escape_html
+    from telegram.utils.helpers import escape_html
 
 def feedback_message_handler(update: Update, context: CallbackContext):
     user = update.effective_user
