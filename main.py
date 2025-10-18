@@ -86,7 +86,7 @@ def button_callback(update: Update, context: CallbackContext):
         member = chat.get_member(user.id)
         if member.status in ["administrator", "creator"]:
             # User is admin, edit original message
-            new_text = f"🎉 [{user.first_name}](tg://user?id={user.id}) is now the game host! Let's get the match started"
+            new_text = f"🎉 [{user.first_name}](tg://user?id={user.id}) is now the game host! Create teams by using /create_teams. Let's get the match started"
             query.message.edit_text(new_text, parse_mode="Markdown", reply_markup=None)
             # Show ephemeral popup
             query.answer(text="✅ You are now the game host!", show_alert=True)
