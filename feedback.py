@@ -1,7 +1,7 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import CallbackContext, CommandHandler, CallbackQueryHandler, MessageHandler, Filters
 from datetime import datetime
-from telegram.utils.helpers import escape_html
+import html
 
 LOG_GROUP_ID = -1003133644267
 
@@ -55,10 +55,7 @@ def feedback_category_callback(update: Update, context: CallbackContext):
 # ======================
 # CAPTURE FEEDBACK MESSAGE
 # ======================
-def feedback_message_handler(update: Update, context: CallbackContext):
-    from telegram.utils.helpers import escape_html
-
-def feedback_message_handler(update: Update, context: CallbackContext):
+def feedback_message_handler(update, context):
     user = update.effective_user
     category = context.user_data.get("feedback_category")
 
@@ -69,8 +66,8 @@ def feedback_message_handler(update: Update, context: CallbackContext):
     feedback_text = update.message.text
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    escaped_feedback = escape_html(feedback_text)
-    escaped_name = escape_html(user.first_name)
+    escaped_feedback = html.escape(feedback_text)
+    escaped_name = html.escape(user.first_name)
 
     feedback_msg = (
         f"🗂 <b>Category:</b> {category}\n"
