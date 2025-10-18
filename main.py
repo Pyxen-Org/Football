@@ -88,7 +88,7 @@ def button_callback(update: Update, context: CallbackContext):
         # Escape Markdown special characters in user's first name
             first_name = user.first_name.replace("_", "\\_").replace("*", "\\*").replace("[", "\\[").replace("]", "\\]")
             new_text = f"🎉 [{first_name}](tg://user?id={user.id}) is now the game host! Create teams by using /create_teams. Let's get the match started"
-            await query.message.edit_text(
+            query.message.edit_text(
                 new_text,
                 parse_mode="MarkdownV2",  # Use MarkdownV2 to safely escape characters
                 reply_markup=None  # This is fine; removes inline keyboard
