@@ -2,7 +2,6 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import CallbackContext, CommandHandler, CallbackQueryHandler, MessageHandler, Filters
 from datetime import datetime
 
-# Your log group ID
 LOG_GROUP_ID = -1003133644267
 
 # ======================
@@ -25,6 +24,7 @@ def feedback_command(update: Update, context: CallbackContext):
         reply_markup=reply_markup
     )
 
+
 # ======================
 # CATEGORY SELECTION
 # ======================
@@ -42,8 +42,13 @@ def feedback_category_callback(update: Update, context: CallbackContext):
     category = category_map.get(query.data)
     context.user_data["feedback_category"] = category
 
-    query.message.reply_text(f"💬 Please type your message for **{category}** below:")
-    query.message.delete()  # clean interface
+    # Delete the button message
+    try:
+        query.message.delete()
+    except:
+        pass
+
+    query.message.reply_text(f"💬 Please type your message for *{category}* below:", parse_mode="Markdown")
 
 
 # ======================
@@ -53,7 +58,7 @@ def feedback_message_handler(update: Update, context: CallbackContext):
     user = update.effective_user
     category = context.user_data.get("feedback_category")
 
-    # If user didn't choose a category first
+    # If user didn't choose a category
     if not category:
         update.message.reply_text("⚠️ Please use /feedback first to choose a feedback type.")
         return
@@ -75,17 +80,15 @@ def feedback_message_handler(update: Update, context: CallbackContext):
         parse_mode="HTML"
     )
 
-    # Acknowledge user with popup
     update.message.reply_text("✅ Thank you for your feedback! It’s been submitted successfully.")
-
-    # Clean up user_data to reset feedback flow
     context.user_data.pop("feedback_category", None)
 
 
 # ======================
-# HANDLER SETUP FUNCTION
+# REGISTER HANDLERS
 # ======================
 def add_feedback_handlers(dispatcher):
+    # feedback handlers must come BEFORE the main callback handler
     dispatcher.add_handler(CommandHandler("feedback", feedback_command))
     dispatcher.add_handler(CallbackQueryHandler(feedback_category_callback, pattern="^feedback_"))
     dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, feedback_message_handler))
