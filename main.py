@@ -36,7 +36,8 @@ def start(update: Update, context: CallbackContext):
 def help_command(update: Update, context: CallbackContext):
     help_text = (
         "🏟️ Current Commands:\n\n"
-        "1️⃣ Press /newgame to start the game."
+        "- /newgame: to start the game.\n"
+        "- /feedback: share your feedback to log/support group."
     )
     keyboard = [[InlineKeyboardButton("Alright!", callback_data="delete_help")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
