@@ -87,13 +87,12 @@ def escape_markdown_v2(text):
     # Escape all MarkdownV2 special characters
     return re.sub(r'([_*\[\]()~`>#+\-=|{}.!])', r'\\\1', text)
 
-elif query.data == "become_host":
-    # Check if the user is an admin
+if query.data == "become_host":
     member = chat.get_member(user.id)
     if member.status in ["administrator", "creator"]:
+        # escape function here...
         first_name = escape_markdown_v2(user.first_name)
         new_text = f"🎉 [{first_name}](tg://user?id={user.id}) is now the game host! Create teams by using /create_teams. Let's get the match started"
-        
         query.message.edit_text(
             new_text,
             parse_mode="MarkdownV2",
