@@ -1,6 +1,7 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import CallbackContext, CommandHandler, CallbackQueryHandler, MessageHandler, Filters
 from datetime import datetime
+from telegram.utils.helpers import escape_html
 
 LOG_GROUP_ID = -1003133644267
 
@@ -55,10 +56,12 @@ def feedback_category_callback(update: Update, context: CallbackContext):
 # CAPTURE FEEDBACK MESSAGE
 # ======================
 def feedback_message_handler(update: Update, context: CallbackContext):
+from telegram.utils.helpers import escape_html
+
+def feedback_message_handler(update: Update, context: CallbackContext):
     user = update.effective_user
     category = context.user_data.get("feedback_category")
 
-    # If user didn't choose a category
     if not category:
         update.message.reply_text("⚠️ Please use /feedback first to choose a feedback type.")
         return
@@ -66,12 +69,14 @@ def feedback_message_handler(update: Update, context: CallbackContext):
     feedback_text = update.message.text
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    # Send to log group
+    escaped_feedback = escape_html(feedback_text)
+    escaped_name = escape_html(user.first_name)
+
     feedback_msg = (
         f"🗂 <b>Category:</b> {category}\n"
-        f"👤 <b>From:</b> <a href='tg://user?id={user.id}'>{user.first_name}</a>\n"
+        f"👤 <b>From:</b> <a href='tg://user?id={user.id}'>{escaped_name}</a>\n"
         f"🕒 <b>Time:</b> {timestamp}\n"
-        f"💬 <b>Feedback:</b> {feedback_text}"
+        f"💬 <b>Feedback:</b> {escaped_feedback}"
     )
 
     context.bot.send_message(
