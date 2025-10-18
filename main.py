@@ -1,6 +1,10 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Updater, CommandHandler, CallbackContext, CallbackQueryHandler
 
+# Features import
+from feedback import add_feedback_handlers
+
+
 # ======================
 # /start COMMAND
 # ======================
@@ -105,6 +109,10 @@ def main():
     dp.add_handler(CommandHandler("rules", rules_command))
     dp.add_handler(CommandHandler("newgame", newgame_command))
     dp.add_handler(CallbackQueryHandler(button_callback))  # single callback for all buttons
+
+
+    # External Db import
+    add_feedback_handlers(dp)
 
     print("⚽ Bot is running...")
     updater.start_polling()
