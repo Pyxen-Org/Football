@@ -83,7 +83,7 @@ def button_callback(update: Update, context: CallbackContext):
     
     elif query.data == "become_host":
     # Check if the user is an admin
-        member = await chat.get_member(user.id)  # Ensure you await this if using aiogram v3
+        member = chat.get_member(user.id)  # Ensure you await this if using aiogram v3
         if member.status in ["administrator", "creator"]:
         # Escape Markdown special characters in user's first name
             first_name = user.first_name.replace("_", "\\_").replace("*", "\\*").replace("[", "\\[").replace("]", "\\]")
