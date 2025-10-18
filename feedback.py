@@ -57,16 +57,14 @@ def feedback_category_callback(update: Update, context: CallbackContext):
 # ======================
 def feedback_message_handler(update, context):
     user = update.effective_user
-    category = context.user_data.get("feedback_category")
-
     msg = update.effective_message
-    if not msg:
-        return  # just ignore if no message
 
+    # Only proceed if user has selected feedback category
+    category = context.user_data.get("feedback_category")
     if not category:
-        msg.reply_text("⚠️ Please use /feedback first to choose a feedback type.")
-        return
+        return  # ignore message, don’t reply
 
+    # Now handle feedback normally
     feedback_text = msg.text
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
@@ -88,7 +86,6 @@ def feedback_message_handler(update, context):
 
     msg.reply_text("✅ Thank you for your feedback! It’s been submitted successfully.")
     context.user_data.pop("feedback_category", None)
-
 
 # ======================
 # REGISTER HANDLERS
