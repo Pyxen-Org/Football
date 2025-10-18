@@ -59,11 +59,15 @@ def feedback_message_handler(update, context):
     user = update.effective_user
     category = context.user_data.get("feedback_category")
 
+    msg = update.effective_message
+    if not msg:
+        return  # just ignore if no message
+
     if not category:
-        update.message.reply_text("⚠️ Please use /feedback first to choose a feedback type.")
+        msg.reply_text("⚠️ Please use /feedback first to choose a feedback type.")
         return
 
-    feedback_text = update.message.text
+    feedback_text = msg.text
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     escaped_feedback = html.escape(feedback_text)
@@ -82,7 +86,7 @@ def feedback_message_handler(update, context):
         parse_mode="HTML"
     )
 
-    update.message.reply_text("✅ Thank you for your feedback! It’s been submitted successfully.")
+    msg.reply_text("✅ Thank you for your feedback! It’s been submitted successfully.")
     context.user_data.pop("feedback_category", None)
 
 
