@@ -82,12 +82,17 @@ def button_callback(update: Update, context: CallbackContext):
         query.message.delete()
 
     elif query.data == "become_host":
-        # Check if the user is an admin
-        member = chat.get_member(user.id)
-        if member.status in ["administrator", "creator"]:
-            # User is admin, edit original message
-            new_text = f"🎉 [{user.first_name}](tg://user?id={user.id}) is now the game host! Create teams by using /create_teams. Let's get the match started"
-            query.message.edit_text(new_text, parse_mode="Markdown", reply_markup=None)
+    # Check if the user is an admin
+    member = await chat.get_member(user.id)  # Ensure you await this if using aiogram v3
+    if member.status in ["administrator", "creator"]:
+        # Escape Markdown special characters in user's first name
+        first_name = user.first_name.replace("_", "\\_").replace("*", "\\*").replace("[", "\\[").replace("]", "\\]")
+        new_text = f"🎉 [{first_name}](tg://user?id={user.id}) is now the game host! Create teams by using /create_teams. Let's get the match started"
+        await query.message.edit_text(
+            new_text,
+            parse_mode="MarkdownV2",  # Use MarkdownV2 to safely escape characters
+            reply_markup=None  # This is fine; removes inline keyboard
+        )
             # Show ephemeral popup
             query.answer(text="✅ You are now the game host!", show_alert=True)
 
