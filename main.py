@@ -81,13 +81,26 @@ def button_callback(update: Update, context: CallbackContext):
     if query.data == "delete_rules":
         query.message.delete()
     
-    elif query.data == "become_host":
-        # Check if the user is an admin
-        member = chat.get_member(user.id)
-        if member.status in ["administrator", "creator"]:
-            # User is admin, edit original message
-            new_text = f"🎉 [{user.first_name}](tg://user?id={user.id}) is now the game host! Create teams by using /create_teams. Let's get the match started"
-            query.message.edit_text(new_text, parse_mode="Markdown", reply_markup=None)
+    import re
+
+def escape_markdown_v2(text):
+    return re.sub(r'([_*\[\]()~`>#+\-=|{}.!])', r'\\\1', text)
+
+elif query.data == "become_host":
+    # Check if the user is an admin
+    member = chat.get_member(user.id)
+    if member.status in ["administrator", "creator"]:
+        # Escape Markdown special characters in user's first name
+        safe_name = escape_markdown_v2(user.first_name)
+        new_text = (
+            f"🎉 [{safe_name}](tg://user?id={user.id}) is now the game host! "
+            "Create teams by using /create_teams. Let's get the match started"
+        )
+        query.message.edit_text(
+            new_text,
+            parse_mode="MarkdownV2",
+            reply_markup=None
+        )
             
             # Show ephemeral popup
         query.answer(text="✅ You are now the game host!", show_alert=True)
