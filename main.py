@@ -81,12 +81,12 @@ def button_callback(update: Update, context: CallbackContext):
     if query.data == "delete_rules":
         query.message.delete()
     
-    import re
+import re
 
 def escape_markdown_v2(text):
     return re.sub(r'([_*\[\]()~`>#+\-=|{}.!])', r'\\\1', text)
 
-elif query.data == "become_host":
+if query.data == "become_host":
     # Check if the user is an admin
     member = chat.get_member(user.id)
     if member.status in ["administrator", "creator"]:
