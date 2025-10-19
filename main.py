@@ -1,15 +1,18 @@
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Updater, CommandHandler, CallbackContext, CallbackQueryHandler
+import asyncio
 import html
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import (
+    ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes
+)
 
 # Features import
 from feedback import add_feedback_handlers
-
+from db import connect_db, create_game, get_game, set_host
 
 # ======================
 # /start COMMAND
 # ======================
-def start(update: Update, context: CallbackContext):
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     welcome_text = (
         "⚽ 𝐖ᴇʟᴄᴏᴍᴇ Tᴏ Fᴏᴏᴛʙᴀʟʟ Bᴏᴛ!\n\n"
         "🎮 Sᴛᴇᴘ ᴏɴᴛᴏ ᴛʜᴇ ᴠɪʀᴛᴜᴀʟ ᴘɪᴛᴄʜ, sᴛʀᴀᴛᴇɢɪᴢᴇ, ʙᴜɪʟᴅ ʏᴏᴜʀ ᴛᴇᴀᴍ, ᴀɴᴅ ᴘʟᴀʏ ᴊᴜsᴛ ʟɪᴋᴇ ɪɴ ᴀ ʀᴇᴀʟ ғᴏᴏᴛʙᴀʟʟ ᴍᴀᴛᴄʜ!\n\n"
@@ -28,13 +31,13 @@ def start(update: Update, context: CallbackContext):
         ]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    update.message.reply_text(welcome_text, reply_markup=reply_markup)
+    await update.message.reply_text(welcome_text, reply_markup=reply_markup)
 
 
 # ======================
 # /help COMMAND
 # ======================
-def help_command(update: Update, context: CallbackContext):
+async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     help_text = (
         "🏟️ Current Commands:\n\n"
         "- /newgame: to start the game.\n"
@@ -42,107 +45,100 @@ def help_command(update: Update, context: CallbackContext):
     )
     keyboard = [[InlineKeyboardButton("Alright!", callback_data="delete_help")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    update.message.reply_text(help_text, reply_markup=reply_markup)
+    await update.message.reply_text(help_text, reply_markup=reply_markup)
 
-def rules_command(update: Update, context: CallbackContext):
-    rules_text = (
-        "Game Rules:-"
-    )
+
+# ======================
+# /rules COMMAND
+# ======================
+async def rules_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    rules_text = "Game Rules:-"
     keyboard = [[InlineKeyboardButton("🎐 I Understood!", callback_data="delete_rules")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    update.message.reply_text(rules_text, reply_markup=reply_markup)
+    await update.message.reply_text(rules_text, reply_markup=reply_markup)
 
 
 # ======================
 # /newgame COMMAND
 # ======================
-def newgame_command(update: Update, context: CallbackContext):
+async def newgame_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_type = update.effective_chat.type
     if chat_type == "private":
-        update.message.reply_text("⚠️ Use /newgame in a group to start a game!")
+        await update.message.reply_text("⚠️ Use /newgame in a group to start a game!")
         return
 
+    chat_id = update.effective_chat.id
+    conn = context.bot_data["db"]
+
+    existing_game = await get_game(conn, chat_id)
+    if existing_game:
+        await update.message.reply_text("A game is already ongoing!")
+        return
+
+    game_id = await create_game(conn, chat_id)
+
     text = "🎉 New Game Alert! 🎉\n\nWho will be the game host for this match? 🤔"
-    keyboard = [[InlineKeyboardButton("🎭 I'm the host!", callback_data="become_host")]]
+    keyboard = [[InlineKeyboardButton("🎭 I'm the host!", callback_data=f"become_host:{game_id}")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    update.message.reply_text(text, reply_markup=reply_markup)
+    await update.message.reply_text(text, reply_markup=reply_markup)
 
 
 # ======================
-# CALLBACK HANDLER (single)
+# CALLBACK HANDLER
 # ======================
-def button_callback(update: Update, context: CallbackContext):
+async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     user = query.from_user
     chat = query.message.chat
+    conn = context.bot_data["db"]
 
-    if query.data == "delete_help":
-        query.message.delete()
+    await query.answer()  # required to acknowledge click
 
-    if query.data == "delete_rules":
-        query.message.delete()
+    data = query.data
 
-# ======================
-# CALLBACK HANDLER (single)
-# ======================
-def button_callback(update: Update, context: CallbackContext):
-    query = update.callback_query
-    user = query.from_user
-    chat = query.message.chat
+    # Delete messages
+    if data in ["delete_help", "delete_rules"]:
+        await query.message.delete()
+        return
 
-    # DELETE HELP BUTTON
-    if query.data == "delete_help":
-        query.message.delete()
-
-    # DELETE RULES BUTTON
-    elif query.data == "delete_rules":
-        query.message.delete()
-
-    # BECOME HOST BUTTON
-    elif query.data == "become_host":
-        # Check if the user is an admin
-        member = chat.get_member(user.id)
+    # Become host
+    if data.startswith("become_host:"):
+        game_id = int(data.split(":")[1])
+        member = await chat.get_member(user.id)
         if member.status in ["administrator", "creator"]:
-            # Escape the user's name like feedback.py
+            await set_host(conn, game_id, user.id)
             safe_name = html.escape(user.first_name)
-
-            # Edit the original message
             new_text = f"🎉 <a href='tg://user?id={user.id}'>{safe_name}</a> is now the game host! Create teams by using /create_teams. Let's get the match started"
             try:
-                query.message.edit_text(new_text, parse_mode="HTML", reply_markup=None)
+                await query.message.edit_text(new_text, parse_mode="HTML", reply_markup=None)
             except:
-                pass  # same silent handling as feedback.py
-
-            # Show ephemeral popup
-            query.answer(text="✅ You are now the game host!", show_alert=True)
+                pass
+            await query.answer(text="✅ You are now the game host!", show_alert=True)
         else:
-            # Not admin: ephemeral popup only
-            query.answer(text="❌ You are not an admin! Ask a group admin to host.", show_alert=True)
+            await query.answer(text="❌ You are not an admin! Ask a group admin to host.", show_alert=True)
 
 
 # ======================
 # MAIN FUNCTION
 # ======================
-def main():
+async def main():
     TOKEN = "8301290642:AAEUw6oa1C1fLIXPBpqRiIJjOYFhrG5sLco"
-    updater = Updater(TOKEN, use_context=True)
-    dp = updater.dispatcher
+    app = ApplicationBuilder().token(TOKEN).build()
+
+    # Connect DB
+    app.bot_data["db"] = await connect_db()
 
     # Add handlers
-    dp.add_handler(CommandHandler("start", start))
-    dp.add_handler(CommandHandler("help", help_command))
-    dp.add_handler(CommandHandler("rules", rules_command))
-    dp.add_handler(CommandHandler("newgame", newgame_command))
-
-
-    # External Db import
-    add_feedback_handlers(dp)
-    dp.add_handler(CallbackQueryHandler(button_callback))  # single callback for all buttons
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("help", help_command))
+    app.add_handler(CommandHandler("rules", rules_command))
+    app.add_handler(CommandHandler("newgame", newgame_command))
+    add_feedback_handlers(app)  # feedback handlers
+    app.add_handler(CallbackQueryHandler(button_callback))  # single callback for all buttons
 
     print("⚽ Bot is running...")
-    updater.start_polling()
-    updater.idle()
+    await app.run_polling()
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
