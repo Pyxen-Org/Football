@@ -1,5 +1,6 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Updater, CommandHandler, CallbackContext, CallbackQueryHandler
+import html
 
 # Features import
 from feedback import add_feedback_handlers
@@ -80,31 +81,17 @@ def button_callback(update: Update, context: CallbackContext):
 
     if query.data == "delete_rules":
         query.message.delete()
-    
-import re
 
-def escape_markdown_v2(text):
-    return re.sub(r'([_*\[\]()~`>#+\-=|{}.!])', r'\\\1', text)
+elif query.data == "become_host":
+    # Check if the user is an admin
+    member = chat.get_member(user.id)
+    if member.status in ["administrator", "creator"]:
+        # Escape the user's name like feedback.py
+        safe_name = html.escape(user.first_name)
 
-def button_callback(update, context):
-    query = update.callback_query
-    user = query.from_user
-    chat = query.message.chat
-
-    if query.data == "become_host":
-        # Check if the user is an admin
-        member = chat.get_member(user.id)
-        if member.status in ["administrator", "creator"]:
-            safe_name = escape_markdown_v2(user.first_name)
-            new_text = (
-                f"🎉 [{safe_name}](tg://user?id={user.id}) is now the game host! "
-                "Create teams by using /create_teams. Let's get the match started"
-            )
-            query.message.edit_text(
-                new_text,
-                parse_mode="MarkdownV2",
-                reply_markup=None
-            )
+        # Edit the original message
+        new_text = f"🎉 <a href='tg://user?id={user.id}'>{safe_name}</a> is now the game host! Create teams by using /create_teams. Let's get the match started"
+        query.message.edit_text(new_text, parse_mode="HTML", reply_markup=None)
             
             # Show ephemeral popup
         query.answer(text="✅ You are now the game host!", show_alert=True)
