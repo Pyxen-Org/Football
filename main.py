@@ -1,10 +1,7 @@
 import asyncio
 import html
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import (
-    ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes
-)
-
+from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, CallbackContext
 # Features import
 from feedback import add_feedback_handlers
 from db import connect_db, create_game, get_game, set_host
