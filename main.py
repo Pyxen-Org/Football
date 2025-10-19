@@ -82,7 +82,7 @@ def button_callback(update: Update, context: CallbackContext):
     if query.data == "delete_rules":
         query.message.delete()
 
-elif query.data == "become_host":
+if query.data == "become_host":
     # Check if the user is an admin
     member = chat.get_member(user.id)
     if member.status in ["administrator", "creator"]:
