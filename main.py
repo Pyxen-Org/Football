@@ -82,22 +82,42 @@ def button_callback(update: Update, context: CallbackContext):
     if query.data == "delete_rules":
         query.message.delete()
 
-if query.data == "become_host":
-    # Check if the user is an admin
-    member = chat.get_member(user.id)
-    if member.status in ["administrator", "creator"]:
-        # Escape the user's name like feedback.py
-        safe_name = html.escape(user.first_name)
+# ======================
+# CALLBACK HANDLER (single)
+# ======================
+def button_callback(update: Update, context: CallbackContext):
+    query = update.callback_query
+    user = query.from_user
+    chat = query.message.chat
 
-        # Edit the original message
-        new_text = f"🎉 <a href='tg://user?id={user.id}'>{safe_name}</a> is now the game host! Create teams by using /create_teams. Let's get the match started"
-        query.message.edit_text(new_text, parse_mode="HTML", reply_markup=None)
-            
+    # DELETE HELP BUTTON
+    if query.data == "delete_help":
+        query.message.delete()
+
+    # DELETE RULES BUTTON
+    elif query.data == "delete_rules":
+        query.message.delete()
+
+    # BECOME HOST BUTTON
+    elif query.data == "become_host":
+        # Check if the user is an admin
+        member = chat.get_member(user.id)
+        if member.status in ["administrator", "creator"]:
+            # Escape the user's name like feedback.py
+            safe_name = html.escape(user.first_name)
+
+            # Edit the original message
+            new_text = f"🎉 <a href='tg://user?id={user.id}'>{safe_name}</a> is now the game host! Create teams by using /create_teams. Let's get the match started"
+            try:
+                query.message.edit_text(new_text, parse_mode="HTML", reply_markup=None)
+            except:
+                pass  # same silent handling as feedback.py
+
             # Show ephemeral popup
-        query.answer(text="✅ You are now the game host!", show_alert=True)
-    else:
+            query.answer(text="✅ You are now the game host!", show_alert=True)
+        else:
             # Not admin: ephemeral popup only
-        query.answer(text="❌ You are not an admin! Ask a group admin to host.", show_alert=True)
+            query.answer(text="❌ You are not an admin! Ask a group admin to host.", show_alert=True)
 
 
 # ======================
