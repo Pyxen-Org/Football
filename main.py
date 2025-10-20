@@ -74,34 +74,35 @@ def newgame_command(update: Update, context: CallbackContext):
 # ======================
 # CALLBACK HANDLER
 # ======================
-async def button_callback(update: Update, context: CallbackContext):
+def button_callback(update: Update, context: CallbackContext):
     query = update.callback_query
     user = query.from_user
     chat = query.message.chat
 
     # DELETE HELP BUTTON
     if query.data == "delete_help":
-        await query.message.delete()
+        query.message.delete()
 
     # DELETE RULES BUTTON
     elif query.data == "delete_rules":
-        await query.message.delete()
+        query.message.delete()
 
     # BECOME HOST BUTTON
     elif query.data == "become_host":
-        member = await chat.get_member(user.id)
+        member = chat.get_member(user.id)
         if member.status in ["administrator", "creator"]:
             safe_name = html.escape(user.first_name)
-            await create_game(chat.id, user.id, safe_name)
+            # Run async DB inside synchronous callback
+            asyncio.run(create_game(chat.id, user.id, safe_name))
+
             new_text = f"🎉 <a href='tg://user?id={user.id}'>{safe_name}</a> is now the game host! Create teams by using /create_teams. Let's get the match started"
             try:
-                await query.message.edit_text(new_text, parse_mode="HTML", reply_markup=None)
+                query.message.edit_text(new_text, parse_mode="HTML", reply_markup=None)
             except:
                 pass
-            await query.answer("✅ You are now the game host!", show_alert=True)
+            query.answer("✅ You are now the game host!", show_alert=True)
         else:
-            await query.answer("❌ You are not an admin! Ask a group admin to host.", show_alert=True)
-
+            query.answer("❌ You are not an admin! Ask a group admin to host.", show_alert=True)
 
 # ======================
 # MAIN FUNCTION
