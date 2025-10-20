@@ -5,7 +5,7 @@ import asyncio
 
 # Features import
 from feedback import add_feedback_handlers
-from db import create_game, set_host, get_game
+from db import create_game, set_host, get_game, init_db
 
 # ======================
 # /start COMMAND
@@ -74,35 +74,33 @@ def newgame_command(update: Update, context: CallbackContext):
 # ======================
 # CALLBACK HANDLER
 # ======================
-def button_callback(update: Update, context: CallbackContext):
+async def button_callback(update: Update, context: CallbackContext):
     query = update.callback_query
     user = query.from_user
     chat = query.message.chat
 
     # DELETE HELP BUTTON
     if query.data == "delete_help":
-        query.message.delete()
+        await query.message.delete()
 
     # DELETE RULES BUTTON
     elif query.data == "delete_rules":
-        query.message.delete()
+        await query.message.delete()
 
     # BECOME HOST BUTTON
     elif query.data == "become_host":
-        member = chat.get_member(user.id)
+        member = await chat.get_member(user.id)
         if member.status in ["administrator", "creator"]:
             safe_name = html.escape(user.first_name)
-            # Database save
-            asyncio.run(create_game(chat.id, user.id, user.first_name))
-
-            new_text = f"🎉 <a href='tg://user?id={user.id}'>{safe_name}</a> is now the game host! Use /create_teams to begin!"
+            await create_game(chat.id, user.id, safe_name)
+            new_text = f"🎉 <a href='tg://user?id={user.id}'>{safe_name}</a> is now the game host! Create teams by using /create_teams. Let's get the match started"
             try:
-                query.message.edit_text(new_text, parse_mode="HTML", reply_markup=None)
-            except Exception:
+                await query.message.edit_text(new_text, parse_mode="HTML", reply_markup=None)
+            except:
                 pass
-            query.answer(text="✅ You are now the game host!", show_alert=True)
+            await query.answer("✅ You are now the game host!", show_alert=True)
         else:
-            query.answer(text="❌ You are not an admin! Ask a group admin to host.", show_alert=True)
+            await query.answer("❌ You are not an admin! Ask a group admin to host.", show_alert=True)
 
 
 # ======================
@@ -113,17 +111,18 @@ def main():
     updater = Updater(TOKEN, use_context=True)
     dp = updater.dispatcher
 
-    # Commands
+    # Initialize DB pool
+    asyncio.run(init_db())
+
+    # Add handlers
     dp.add_handler(CommandHandler("start", start))
     dp.add_handler(CommandHandler("help", help_command))
     dp.add_handler(CommandHandler("rules", rules_command))
     dp.add_handler(CommandHandler("newgame", newgame_command))
 
-    # Feedback system (external)
+    # External Db import
     add_feedback_handlers(dp)
-
-    # Buttons
-    dp.add_handler(CallbackQueryHandler(button_callback))
+    dp.add_handler(CallbackQueryHandler(button_callback))  # single callback for all buttons
 
     print("⚽ Bot is running...")
     updater.start_polling()
