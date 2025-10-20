@@ -1,9 +1,11 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Updater, CommandHandler, CallbackContext, CallbackQueryHandler
 import html
+import asyncio
 
 # Features import
 from feedback import add_feedback_handlers
+from db import create_game, set_host, get_game
 
 # ======================
 # /start COMMAND
@@ -90,6 +92,9 @@ def button_callback(update: Update, context: CallbackContext):
         member = chat.get_member(user.id)
         if member.status in ["administrator", "creator"]:
             safe_name = html.escape(user.first_name)
+            # Database save
+            asyncio.run(create_game(chat.id, user.id, user.first_name))
+
             new_text = f"🎉 <a href='tg://user?id={user.id}'>{safe_name}</a> is now the game host! Use /create_teams to begin!"
             try:
                 query.message.edit_text(new_text, parse_mode="HTML", reply_markup=None)
