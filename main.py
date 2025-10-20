@@ -1,8 +1,9 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Updater, CommandHandler, CallbackContext, CallbackQueryHandler
-from db import connect_db, create_game, get_game, set_host
-import asyncio
+import html
 
+# Features import
+from feedback import add_feedback_handlers
 
 # ======================
 # /start COMMAND
@@ -10,10 +11,10 @@ import asyncio
 def start(update: Update, context: CallbackContext):
     welcome_text = (
         "⚽ 𝐖ᴇʟᴄᴏᴍᴇ Tᴏ Fᴏᴏᴛʙᴀʟʟ Bᴏᴛ!\n\n"
-        "🎮 Step onto the virtual pitch, strategize, build your team, and play like it’s a real match!\n\n"
-        "🔥 Score goals, make smart plays, and rise to the leaderboard.\n"
-        "🏆 Train - Compete - Conquer\n\n"
-        "Type /help to learn how to get started!"
+        "🎮 Sᴛᴇᴘ ᴏɴᴛᴏ ᴛʜᴇ ᴠɪʀᴛᴜᴀʟ ᴘɪᴛᴄʜ, sᴛʀᴀᴛᴇɢɪᴢᴇ, ʙᴜɪʟᴅ ʏᴏᴜʀ ᴛᴇᴀᴍ, ᴀɴᴅ ᴘʟᴀʏ ᴊᴜsᴛ ʟɪᴋᴇ ɪɴ ᴀ ʀᴇᴀʟ ғᴏᴏᴛʙᴀʟʟ ᴍᴀᴛᴄʜ!\n\n"
+        "🔥 Fʀᴇᴇ ᴛʜᴇ ᴀᴅʀᴇɴᴀʟɪɴᴇ ʀᴜsʜ ᴀs ʏᴏᴜ sᴄᴏʀᴇ ɢᴏᴀʟs, ᴍᴀᴋᴇ sᴍᴀʀᴛ ᴘʟᴀʏs, ᴀɴᴅ ʀɪsᴇ ᴛᴏ ᴛʜᴇ ᴛᴏᴘ ᴏғ ᴛʜᴇ ʟᴇᴀᴅᴇʀʙᴏᴀʀᴅ.\n"
+        "🏆 Tʀᴀɪɴ - Cᴏᴍᴘᴇᴛᴇ - Cᴏɴǫᴜᴇʀ\n\n"
+        "Tʏᴘᴇ /help ᴛᴏ ʟᴇᴀʀɴ ʜᴏᴡ ᴛᴏ ɢᴇᴛ sᴛᴀʀᴛᴇᴅ ᴀɴᴅ ᴍᴀsᴛᴇʀ ᴛʜᴇ ɢᴀᴍᴇ!"
     )
 
     keyboard = [
@@ -35,12 +36,22 @@ def start(update: Update, context: CallbackContext):
 def help_command(update: Update, context: CallbackContext):
     help_text = (
         "🏟️ Current Commands:\n\n"
-        "1️⃣ /newgame — Start a new match.\n"
-        "2️⃣ /feedback — Send your feedback."
+        "- /newgame: to start the game.\n"
+        "- /feedback: share your feedback to log/support group."
     )
     keyboard = [[InlineKeyboardButton("Alright!", callback_data="delete_help")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
     update.message.reply_text(help_text, reply_markup=reply_markup)
+
+
+# ======================
+# /rules COMMAND
+# ======================
+def rules_command(update: Update, context: CallbackContext):
+    rules_text = "📜 Game Rules:\n\n1️⃣ Be fair.\n2️⃣ Respect others.\n3️⃣ No spam.\n4️⃣ Have fun!"
+    keyboard = [[InlineKeyboardButton("🎐 I Understood!", callback_data="delete_rules")]]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    update.message.reply_text(rules_text, reply_markup=reply_markup)
 
 
 # ======================
@@ -65,33 +76,48 @@ def button_callback(update: Update, context: CallbackContext):
     query = update.callback_query
     user = query.from_user
     chat = query.message.chat
-    query.answer()
 
+    # DELETE HELP BUTTON
     if query.data == "delete_help":
         query.message.delete()
 
+    # DELETE RULES BUTTON
+    elif query.data == "delete_rules":
+        query.message.delete()
+
+    # BECOME HOST BUTTON
     elif query.data == "become_host":
         member = chat.get_member(user.id)
         if member.status in ["administrator", "creator"]:
-            new_text = f"🎉 [{user.first_name}](tg://user?id={user.id}) is now the game host! Let's get started!"
-            query.message.edit_text(new_text, parse_mode="Markdown")
-            query.answer("✅ You are now the game host!", show_alert=True)
+            safe_name = html.escape(user.first_name)
+            new_text = f"🎉 <a href='tg://user?id={user.id}'>{safe_name}</a> is now the game host! Use /create_teams to begin!"
+            try:
+                query.message.edit_text(new_text, parse_mode="HTML", reply_markup=None)
+            except Exception:
+                pass
+            query.answer(text="✅ You are now the game host!", show_alert=True)
         else:
-            query.answer("❌ You are not an admin! Ask a group admin to host.", show_alert=True)
+            query.answer(text="❌ You are not an admin! Ask a group admin to host.", show_alert=True)
 
 
 # ======================
 # MAIN FUNCTION
 # ======================
 def main():
-    TOKEN = "8301290642:AAEUw6oa1C1fLIXPBpqRiIJjOYFhrG5sLco"
+    TOKEN = "YOUR_BOT_TOKEN"
     updater = Updater(TOKEN, use_context=True)
     dp = updater.dispatcher
 
-    # Register commands
+    # Commands
     dp.add_handler(CommandHandler("start", start))
     dp.add_handler(CommandHandler("help", help_command))
+    dp.add_handler(CommandHandler("rules", rules_command))
     dp.add_handler(CommandHandler("newgame", newgame_command))
+
+    # Feedback system (external)
+    add_feedback_handlers(dp)
+
+    # Buttons
     dp.add_handler(CallbackQueryHandler(button_callback))
 
     print("⚽ Bot is running...")
