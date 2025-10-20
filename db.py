@@ -4,7 +4,7 @@ import asyncio
 # =========================
 # DATABASE CONFIGURATION
 # =========================
-DATABASE_URL = "postgresql://postgres:NEqIXtgwKZQoBWFIqfbasqJQzkCMWDpY@postgres.railway.internal:5432/railway"
+DATABASE_URL = "postgresql://postgres:NEqIXtgwKZQoBWFIqfbasqJQzkCMWDpY@shinkansen.proxy.rlwy.net:50906/railway"
 
 # =========================
 # CONNECTION FUNCTION
