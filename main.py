@@ -79,31 +79,24 @@ def button_callback(update: Update, context: CallbackContext):
     user = query.from_user
     chat = query.message.chat
 
-    # DELETE HELP BUTTON
-    if query.data == "delete_help":
-        query.message.delete()
-
-    # DELETE RULES BUTTON
-    elif query.data == "delete_rules":
-        query.message.delete()
-
-    # BECOME HOST BUTTON
-    elif query.data == "become_host":
+    if query.data == "become_host":
         member = chat.get_member(user.id)
         if member.status in ["administrator", "creator"]:
             safe_name = html.escape(user.first_name)
-            # Run async DB inside synchronous callback
-            asyncio.run(create_game(chat.id, user.id, safe_name))
+
+            # Run async DB in the current loop safely
+            loop = asyncio.get_event_loop()
+            loop.create_task(create_game(chat.id, user.id, safe_name))
 
             new_text = f"🎉 <a href='tg://user?id={user.id}'>{safe_name}</a> is now the game host! Create teams by using /create_teams. Let's get the match started"
             try:
                 query.message.edit_text(new_text, parse_mode="HTML", reply_markup=None)
             except:
                 pass
+
             query.answer("✅ You are now the game host!", show_alert=True)
         else:
             query.answer("❌ You are not an admin! Ask a group admin to host.", show_alert=True)
-
 # ======================
 # MAIN FUNCTION
 # ======================
